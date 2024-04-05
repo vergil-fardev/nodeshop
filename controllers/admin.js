@@ -2,7 +2,6 @@
  * CONTROLLER FILE
  */
 
-const mongodb = require('mongodb');
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
@@ -67,7 +66,7 @@ exports.postEditProduct = (req, res, next) => {
     const updatedDescription = req.body.description;
     const updatedPrice = req.body.price;
 
-    const product = new Product(updatedTitle, updatedPrice, updatedDescription, updatedImageUrl, new mongodb.ObjectId(productId));
+    const product = new Product(updatedTitle, updatedPrice, updatedDescription, updatedImageUrl, productId);
     product.save()
     .then((result) => {
         console.log('UPDATED PRODUCT!');
@@ -78,20 +77,17 @@ exports.postEditProduct = (req, res, next) => {
     });
 };
 
-// exports.postDeleteProduct = (req, res, next) => {
-//     const productId = req.body.productId;
-//     Product.findByPk(productId)
-//     .then((product) => {
-//         return product.destroy();
-//     })
-//     .then((result) => {
-//         console.log('PRODUCT DELETED!');
-//         res.redirect('/admin/products');
-//     })
-//     .catch((err) => {
-//         console.log(err);
-//     });
-// };
+exports.postDeleteProduct = (req, res, next) => {
+    const productId = req.body.productId;
+    Product.deleteById(productId)
+    .then((result) => {
+        console.log('PRODUCT DELETED!');
+        res.redirect('/admin/products');
+    })
+    .catch((err) => {
+        console.log(err);
+    });
+};
 
 exports.getProducts = (req, res, next) => {
     Product.fetchAll()
