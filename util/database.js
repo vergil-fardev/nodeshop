@@ -1,28 +1,30 @@
-const mongodb = require('mongodb')
-const MongoClient = mongodb.MongoClient;
+// ToDo: DELETE THIS FILE LATER
 
-let _db;
+// const mongodb = require('mongodb')
+// const MongoClient = mongodb.MongoClient;
 
-const mongoConnect = (callback) => {
-    MongoClient
-    .connect('mongodb+srv://rafver:X4z30db4EEETDQnr@rafcluster.zldo4y3.mongodb.net/')
-    .then(client => {
-        console.log('Connected!');
-        _db = client.db(); 
-        callback(client);
-    })
-    .catch(err => {
-        console.log(err);
-        throw err;
-    });
-}
+// let _db;
 
-const getDb = () => {
-    if(_db) {
-        return _db;
-    }
-    throw 'No database found.';
-}
+// const mongoConnect = (callback) => {
+//     MongoClient
+//     .connect('mongodb+srv://rafver:X4z30db4EEETDQnr@rafcluster.zldo4y3.mongodb.net/')
+//     .then(client => {
+//         console.log('Connected!');
+//         _db = client.db(); 
+//         callback(client);
+//     })
+//     .catch(err => {
+//         console.log(err);
+//         throw err;
+//     });
+// }
 
-exports.mongoConnect = mongoConnect;
-exports.getDb = getDb;
+// const getDb = () => {
+//     if(_db) {
+//         return _db;
+//     }
+//     throw 'No database found.';
+// }
+
+// exports.mongoConnect = mongoConnect;
+// exports.getDb = getDb;
