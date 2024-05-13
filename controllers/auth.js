@@ -1,12 +1,24 @@
+const sendGridAPIKey = require('../util/sendgrid');
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
+
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: sendGridAPIKey,        
+    },
+  })
+);
 
 exports.getLogin = (req, res, next) => {
   res.render("auth/login", {
     pageTitle: "Shop",
     path: "/login",
     isAuthenticated: false,
-    errorMessage: req.flash('error')[0] ?? null,
+    errorMessage: req.flash("error")[0] ?? null,
   });
 };
 
@@ -17,7 +29,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        req.flash('error', 'Invalid user or email.');
+        req.flash("error", "Invalid user or email.");
         return res.redirect("/login");
       }
       bcrypt.compare(password, user.password).then((doMatch) => {
@@ -31,12 +43,12 @@ exports.postLogin = (req, res, next) => {
             res.redirect("/");
           });
         }
-        req.flash('error', 'Invalid user or email.');
+        req.flash("error", "Invalid user or email.");
         res.redirect("/login");
       });
     })
     .catch((err) => {
-      req.flash('error', 'Something went wrong, please try again.');
+      req.flash("error", "Something went wrong, please try again.");
       console.log(err);
     });
 };
@@ -83,6 +95,12 @@ exports.postSignUp = (req, res, next) => {
         .then((result) => {
           console.log(result);
           res.redirect("/login");
+          return transporter.sendMail({
+            to: email,
+            from: "raf-shop@node-shop.com",
+            subject: "Sign Up",
+            html: "<h1>You successfully signed up!</h1>",
+          });
         });
     })
     .catch((err) => {
