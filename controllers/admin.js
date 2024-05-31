@@ -1,10 +1,14 @@
 const Product = require("../models/product");
+const { validationResult } = require('express-validator');
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editMode: false,
+    hasError: false,
+    errorMessage: null,
+    validationErrors: [],
   });
 };
 
@@ -20,6 +24,21 @@ exports.postAddProduct = (req, res, next) => {
     imageUrl: imageUrl,
     userId: req.user,
   });
+
+  errors = validationResult(req);
+
+  if(!errors.isEmpty()) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editMode: false,
+      hasError: true,
+      product: { title: title, imageUrl: imageUrl, price: price, description: description },
+      errorMessage: errors.array()[0].msg ?? null,
+      validationErrors: errors.array(),
+    });
+  }
+
   product
     .save()
     .then((result) => {
@@ -37,6 +56,7 @@ exports.getEditProduct = (req, res, next) => {
   if (!editMode) {
     return res.redirect("/");
   }
+
   const prodId = req.params.productId;
   Product.findById(prodId)
     .then((product) => {
@@ -48,6 +68,9 @@ exports.getEditProduct = (req, res, next) => {
         path: "/admin/edit-product",
         editMode: editMode,
         product: product,
+        hasError: false,
+        errorMessage: null,
+        validationErrors: [],
       });
     })
     .catch((err) => console.log(err));
@@ -59,6 +82,20 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
+
+  errors = validationResult(req);
+
+  if(!errors.isEmpty()) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
+      editMode: true,
+      hasError: true,
+      product: { _id: prodId, title: updatedTitle, imageUrl: updatedImageUrl, price: updatedPrice, description: updatedDesc },
+      errorMessage: errors.array()[0].msg ?? null,
+      validationErrors: errors.array(),
+    });
+  }
 
   Product.findById(prodId)
     .then((product) => {
