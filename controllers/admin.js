@@ -48,6 +48,9 @@ exports.postAddProduct = (req, res, next) => {
     })
     .catch((err) => {
       console.log(err);
+      const error = new Error('Error creating new product.');
+      error.status = 500;
+      next(error);
     });
 };
 

@@ -4,14 +4,13 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 
-
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 const mongoose = require("mongoose");
 
-const csrf = require('csurf');
-const flash = require('connect-flash');
+const csrf = require("csurf");
+const flash = require("connect-flash");
 
 const User = require("./models/user");
 
@@ -46,11 +45,12 @@ app.use(
 app.use(csrfProtection);
 app.use(flash());
 
-/* Expression Session object returns JS objects, not Mongoose object.
-Therefore, methods such as .addToCart() or .populate() become unavailable in certain parts of the code.
-To fix that, we create a middleware that grabs User Id from Session, fetches the Mongoose Model User Object
-based on it, and then sets it as the 'user' in the Request object.
- */
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 app.use((req, res, next) => {
   if (!req.session || !req.session.userId) {
     return next();
@@ -64,19 +64,24 @@ app.use((req, res, next) => {
         next(new Error("Could not retrieve user from session."));
       }
     })
-    .catch((err) => console.log(err));
-});
-
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
+    .catch((err) => {
+      throw new Error(err);
+    });
 });
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
+app.get("/500", errorController.get500);
 app.use(errorController.get404);
+
+app.use((error, req, res, next) => {
+  res.status(500).render("500", {
+    pageTitle: "Error!",
+    path: "/500",
+    isAuthenticated: req.user.isAuthenticated,
+  });
+});
 
 mongoose
   .connect(MONGODB_CONNECTION_STRING)
