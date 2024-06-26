@@ -24,7 +24,6 @@ router.post(
         .isLength({min: 3})
         .isAlphanumeric('en-US', { ignore: ' '})
         .trim(),
-        body('imageUrl', 'Invalid URL for image.').isURL(),
         body('price', 'Price must be a valid number.').isFloat(),
         body('description', 'Please set a description with a minimum of 5 characters and a maximum of 400 letters.')
         .isLength({min: 5, max: 400})
@@ -43,7 +42,6 @@ router.post(
         .isLength({min: 3})
         .isAlphanumeric('en-US', { ignore: ' '})
         .trim(),
-        body('imageUrl', 'Invalid URL for image.').isURL(),
         body('price', 'Price must be a valid number.').isFloat(),
         body('description', 'Please set a description with a minimum of 5 characters and a maximum of 400 letters.')
         .isLength({min: 5, max: 400})
