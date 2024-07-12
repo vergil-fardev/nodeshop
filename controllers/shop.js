@@ -3,6 +3,8 @@ const path = require("path");
 const Product = require("../models/product");
 const Order = require("../models/order");
 const PDFDocument = require("pdfkit");
+const stripeUtil = require('../util/stripe');
+const stripe = require('stripe')(stripeUtil.stripePk);
 
 const ITEMS_PER_PAGE = 1;
 
@@ -116,7 +118,8 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-exports.postOrder = (req, res, next) => {
+//exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .then((user) => {
@@ -229,4 +232,57 @@ exports.getInvoice = (req, res, next) => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+exports.getCheckout = (req, res, next) => {
+  let products;
+  let total;
+
+  req.user
+  .populate('cart.items.productId')
+  .then((user) => {
+    products = user.cart.items;
+    total = 0;
+
+    products.forEach(p => {
+      total += p.quantity * p.productId.price;
+    });
+
+    return stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: products.map(p => {
+        return {
+          quantity: p.quantity,
+          price_data: {
+            currency: 'usd',
+            unit_amount: p.productId.price * 100, // value must be in cents
+            product_data: {
+              name: p.productId.title,
+              description: p.productId.description,
+            },
+          },
+        }
+      }),
+      customer_email: req.user.email,
+      success_url: req.protocol + '://' + req.get('host') + '/checkout/success', // this approach is not 100% reliable, stripe documentation has solutions.
+      cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
+    });
+  })
+  .then((stripeSession) => {
+    res.render("shop/checkout", {
+      path: "/checkout",
+      pageTitle: "Checkout",
+      products: products,
+      totalSum: total,
+      stripeDk: stripeUtil.stripeDk,
+      stripeSessionId: stripeSession.id,
+    });
+  })
+  .catch((err) => {
+    const error = new Error(err);
+    error.httpsStatusCode = 500;
+    return next(error);
+  })
+  
 };
