@@ -104,7 +104,7 @@ app.use((error, req, res, next) => {
     pageTitle: "Error!",
     path: "/500",
     errorMessage: error.toString(),
-    isAuthenticated: req.user.isAuthenticated,
+    isAuthenticated: res.locals.isAuthenticated,
   });
 });
 
