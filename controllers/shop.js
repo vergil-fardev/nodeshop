@@ -4,7 +4,7 @@ const Product = require("../models/product");
 const Order = require("../models/order");
 const PDFDocument = require("pdfkit");
 const stripeUtil = require('../util/stripe');
-const stripe = require('stripe')(stripeUtil.stripePk);
+const stripe = require('stripe')(stripeUtil.stripeSecretKey);
 
 const ITEMS_PER_PAGE = 1;
 
@@ -275,7 +275,7 @@ exports.getCheckout = (req, res, next) => {
       pageTitle: "Checkout",
       products: products,
       totalSum: total,
-      stripeDk: stripeUtil.stripeDk,
+      stripePk: stripeUtil.stripePublishableKey,
       stripeSessionId: stripeSession.id,
     });
   })

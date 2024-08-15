@@ -1,5 +1,6 @@
 const errorController = require("./controllers/error");
 const path = require("path");
+const fs = require("fs");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -15,8 +16,11 @@ const flash = require("connect-flash");
 
 const User = require("./models/user");
 
-const MONGODB_CONNECTION_STRING =
-  require("./util/database").databaseConnectionString;
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+
+const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@rafcluster.zldo4y3.mongodb.net/${process.env.MONGO_DEFAULT_DB}`;
 
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
@@ -50,6 +54,14 @@ const app = express();
 
 app.set("view engine", "ejs");
 app.set("views", "views");
+
+app.use(helmet());
+app.use(compression());
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, 'access.log'),
+  { flags: 'a' }, // flag 'a' means append, to append log messages instead of overwriting existing ones. 
+);
+app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single("image"));
@@ -111,6 +123,6 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(MONGODB_CONNECTION_STRING)
   .then((result) => {
-    app.listen(3000);
+    app.listen(process.env.PORT || 3000);
   })
   .catch((err) => console.log(err));
